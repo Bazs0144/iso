@@ -1,8 +1,5 @@
 #include "framework.h"
 
-
-
-
 unsigned short dimensions[3]; //x,y,z dims
 unsigned short resolution = 100;
 unsigned short isolevel = 2000;
@@ -21,7 +18,7 @@ public:
 		float windowSize = l * tanf(fov / 2);
 		wRight = normalize(cross(wVup, w)) * windowSize;
 	}
-	
+
 	//mat4 V() {
 	//	vec3 w = normalize(wEye - wLookat);
 	//	vec3 u = normalize(cross(wVup, w));
@@ -64,17 +61,16 @@ struct RenderState {
 	vec3 kd, background;
 };
 
-
 class IsoShader : public GPUProgram {
 	const char* vertexSource = R"(
 		#version 330
 		precision highp float;
 
-		in vec3 uvin;
-		out vec3 uvout;
+		layout(location = 0) in vec2 vtxCoord;
+		out vec2 uv;
 	
 		void main(){
-			uvout = uvin;
+			uv = (vtxCoord + 1.0f)/2.0f;
 		}
 
 	)";
@@ -82,6 +78,11 @@ class IsoShader : public GPUProgram {
 	const char* fragmentSource = R"(
 		#version 330
 		precision highp float;
+
+		struct Light {
+			vec3 La, Le;
+			vec4 wLightPos;
+		};
 
 		uniform sampler3D vol;
 		uniform float isolevel, R, dt;
@@ -91,26 +92,30 @@ class IsoShader : public GPUProgram {
 
 		in vec2 uv;
 		out vec4 color;
-
+       //line18
 		void main() { 
-		  vec3 p = lat+ri*(2*uv.x-1)+up*(2*uv.y-1);
-		  vec3 dir = normalize(p–eye);
-		  vec3 t0 = (vec3(0,0,0)-eye)/dir, t1 = (vec3(1,1,1)-eye)/dir;
-		  vec3 ti = min(t0, t1), to = max(t0, t1);
-		  float en=max(max(ti.x,ti.y),ti.z), ex=min(min(to.x,to.y),to.z);
-		  color = background;
-		  vec3 dx=vec3(1/R,0,0), dy=vec3(0,1/R,0), dz=vec3(0,0,1/R); 
-		  for(float t = en; t < ex; t += dt) {
-			 vec3 q = eye + dir * t;
-			 vec3 L = normalize(light.wLightPos.xyz-q*light.wLightPos.w); //since wLightPos in hom.coord.
-			 if (texture(vol, q).x > isolevel) {
-				vec3 N = vec3(texture(vol, q+dx) – texture(vol, q-dx),
-						   texture(vol, q+dy) – texture(vol, q-dy),
-							  texture(vol, q+dz) – texture(vol, q-dz)); 
-			 color = light.Le * kd * max(dot(L, normalize(N)), 0);
-			 }
-		  }
-		}
+			vec3 p = lat + ri * (2 * uv.x - 1) + up * (2 * uv.y - 1);
+			vec3 dir = normalize(p - eye);
+			//calculating intersection with 3 planes in one step, each vec3 coord represents a plane
+			vec3 t0 = (vec3(0,0,0) - eye)/dir; //intersection coords with x=0, y=0, z=0 planes
+			vec3 t1 = (vec3(1,1,1) - eye)/dir; //intersection coords with x=1, y=1, z=1 planes
+			vec3 ti = min(t0, t1); //closest points
+			vec3 to = max(t0, t1); //farthest points
+			float en = max(max(ti.x,ti.y),ti.z); //actual entrance point
+			float ex = min(min(to.x,to.y),to.z); //actual exit point
+			color = vec4(background.x, background.y, background.z, 1);
+			vec3 dx=vec3(1/R,0,0), dy=vec3(0,1/R,0), dz=vec3(0,0,1/R); 
+			for(float t = en; t < ex; t += dt) {
+				vec3 q = eye + dir * t;
+				vec3 L = normalize(light.wLightPos.xyz - q*light.wLightPos.w); //since wLightPos in hom.coord., also accurate in case of directional lightsource
+				if (texture(vol, q).x > isolevel) {
+				vec3 N = vec3((float)(texture(vol, q+dx) - texture(vol, q-dx)),
+								(float)(texture(vol, q+dy) - texture(vol, q-dy)),
+								(float)(texture(vol, q+dz) - texture(vol, q-dz))); //33
+				color = light.Le * kd * max(dot(L, normalize(N)), vec3(0,0,0));
+				}
+			}
+			}
 
 	)";
 
@@ -128,6 +133,7 @@ public:
 		setUniform(state.up, "up");
 		setUniform(state.kd, "kd");
 		setUniform(state.background, "background");
+		setUniformLight(state.light, "light");
 	}
 
 	void setUniformLight(const Light& light, const std::string& name) {
@@ -153,20 +159,10 @@ public:
 
 Camera camera;
 Light light;
-IsoShader isoShader;
-
-//read volume data from file
-void loadVolumeData(unsigned short* vd) {
-	FILE* fp = fopen("stagbeetle832x832x494.dat", "rb");
-	fread((void*)dimensions, 3, sizeof(unsigned short), fp);
-	int datasize = int(dimensions[0]) * int(dimensions[1]) * int(dimensions[2]);
-	vd = new unsigned short[datasize];
-	fread((void*)vd, datasize, sizeof(unsigned short), fp);
-	fclose(fp);
-}
+IsoShader* isoShader;
 
 class FullScreenTexturedQuad {
-	unsigned int vao = 0, textureID = 0;
+	unsigned int vao = 0;
 	unsigned short* volData;
 public:
 	FullScreenTexturedQuad(int windowWidth, int windowHeight) {
@@ -181,10 +177,24 @@ public:
 		glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, NULL);
 
 		loadVolumeData(volData);
+		createTexture();
+	}
+
+	//read volume data from file
+	void loadVolumeData(unsigned short* vd) {
+		FILE* fp = fopen("stagbeetle832x832x494.dat", "rb");
+		fread((void*)dimensions, 3, sizeof(unsigned short), fp);
+		int datasize = int(dimensions[0]) * int(dimensions[1]) * int(dimensions[2]);
+		vd = new unsigned short[datasize];
+		fread((void*)vd, datasize, sizeof(unsigned short), fp);
+		fclose(fp);
+	}
+
+	void createTexture() {
 		unsigned int textureID;
 		glGenTextures(1, &textureID);
 		const unsigned int textureUnit = 0; //selecting the first tex.unit
-		int samplerLocation = glGetUniformLocation(isoShader.getId(), "vol");
+		int samplerLocation = glGetUniformLocation(isoShader->getId(), "vol");
 		if (samplerLocation >= 0) {
 			glActiveTexture(GL_TEXTURE0 + textureUnit); //selecting textureunit 0 for our texture to bind to
 			glBindTexture(GL_TEXTURE_3D, textureID);
@@ -229,7 +239,7 @@ void setupRenderState() {
 	state.background = vec3(0, 0, 0);
 	state.R = resolution;
 	state.dt = 1 / resolution;
-	isoShader.Bind(state);
+	isoShader->Bind(state);
 }
 
 
@@ -238,7 +248,9 @@ void onInitialization() {
 	glEnable(GL_DEPTH_TEST); //kell?
 	glDisable(GL_CULL_FACE);
 	glEnable(GL_TEXTURE_3D);
+	isoShader = new IsoShader();
 	quad = new FullScreenTexturedQuad(windowWidth, windowHeight);
+	setupRenderState();
 	initScene();
 }
 
@@ -246,7 +258,7 @@ void onInitialization() {
 void onDisplay() {
 	glClearColor(0.5f, 0.5f, 0.8f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	setupRenderState();
+
 	quad->Draw();
 	glutSwapBuffers();
 }
