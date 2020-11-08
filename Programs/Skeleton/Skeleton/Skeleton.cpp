@@ -1,43 +1,103 @@
 #include "framework.h"
 
-#include <string>
-#include <iostream>
-#include <fstream>
-#include <sstream>
-
-
-
 GPUProgram gpuProgram; // vertex and fragment shaders
 unsigned int vao;	   // virtual world on the GPU
 Texture3D texture;
+unsigned short resolution;
+unsigned short isolevel = 50;
+
+
+
+struct Camera {
+
+	vec3 wEye, wLookat, wVup, wRight;
+	float fov, asp, fp, bp;
+public:
+	Camera() {
+		asp = (float)windowWidth / windowHeight;
+		fov = 75.0f * (float)M_PI / 180.0f;
+		fp = 1; bp = 20;
+		vec3 w = wEye - wLookat;
+		float l = length(w);
+		float windowSize = l * tanf(fov / 2);
+		wRight = normalize(cross(wVup, w)) * windowSize;
+	}
+
+	//mat4 V() {
+	//	vec3 w = normalize(wEye - wLookat);
+	//	vec3 u = normalize(cross(wVup, w));
+	//	vec3 v = cross(w, u);
+	//	return TranslateMatrix(wEye * (-1)) * mat4(u.x, v.x, w.x, 0,
+	//		u.y, v.y, w.y, 0,
+	//		u.z, v.z, w.z, 0,
+	//		0, 0, 0, 1);
+	//}
+
+	//mat4 P() {
+	//	return mat4(1 / (tan(fov / 2) * asp), 0, 0, 0,
+	//		0, 1 / tan(fov / 2), 0, 0,
+	//		0, 0, -(fp + bp) / (bp - fp), -1,
+	//		0, 0, -2 * fp * bp / (bp - fp), 0);
+	//}
+};
+
+struct Light {
+	vec3 Le;
+	vec4 wLightPos;
+};
+
+Camera camera;
+Light light;
+
+void initScene() {
+	camera.wEye = vec3(0, 0, 2);
+	camera.wLookat = vec3(0, 0, 0);
+	camera.wVup = vec3(0, 1, 0);
+	light.wLightPos = vec4(-10, 10, 10, 8);
+	light.Le = vec3(0.8, 0.8, 0.8);
+}
+
+void setUniforms() {
+	gpuProgram.setUniform(isolevel, "isolevel");
+	gpuProgram.setUniform(resolution, "R");
+	gpuProgram.setUniform(camera.wLookat, "lat");
+	gpuProgram.setUniform(camera.wEye, "eye");
+	gpuProgram.setUniform(normalize(camera.wVup), "up");
+	gpuProgram.setUniform(vec3(0.0f, 0.6f, 0.6f), "kd"); //whatever
+	gpuProgram.setUniform(vec4(0,0,0,0), "background");
+	gpuProgram.setUniform(light.Le, "light.Le");
+	gpuProgram.setUniform(light.wLightPos, "light.wLightPos");
+}
 
 // Initialization, create an OpenGL context
 void onInitialization() {
-	ShaderProgramSource source = parserShader("./vertex.vert", "./fragment.frag");
 	glViewport(0, 0, windowWidth, windowHeight);
+	glEnable(GL_DEPTH_TEST); //kell?
+	glDisable(GL_CULL_FACE);
+	glEnable(GL_TEXTURE_3D);
+	ShaderProgramSource source = parserShader("./vertex.vert", "./fragment.frag");
+
 	// create program for the GPU
 	gpuProgram.create(&(source.VertexSource[0]), &(source.FragmentSource[0]), "outColor");
+	initScene(); //setup camera and light
+	setUniforms(); 
 
 	texture = Texture3D("./res/stagbeetle.dat");
+	resolution = max(max(texture.x, texture.y), texture.z);
 
 	glGenVertexArrays(1, &vao);	// get 1 vao id
 	glBindVertexArray(vao);		// make it active
-
 	unsigned int vbo;		// vertex buffer object
 	glGenBuffers(1, &vbo);	// Generate 1 buffer
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
 
-	// Geometry 
+	// Geometry: fullscreen quad
 	float cVtx[] = { -1,-1, 1,-1, 1,1, -1, 1 };
-	glBufferData(GL_ARRAY_BUFFER, sizeof(cVtx),
-		cVtx, GL_STATIC_DRAW);
-
-
+	glBufferData(GL_ARRAY_BUFFER, sizeof(cVtx), cVtx, GL_STATIC_DRAW);
 	glEnableVertexAttribArray(0);  // AttribArray 0
 	glVertexAttribPointer(0,       // vbo -> AttribArray 0
 		2, GL_FLOAT, GL_FALSE, // two floats/attrib, not fixed-point
 		0, NULL); 		     // stride, offset: tightly packed
-
 
 }
 
@@ -58,12 +118,11 @@ void onDisplay() {
 	location = glGetUniformLocation(gpuProgram.getId(), "MVP");	// Get the GPU location of uniform variable MVP
 	glUniformMatrix4fv(location, 1, GL_TRUE, &MVPtransf[0][0]);	// Load a 4x4 row-major float matrix to the specified location
 
-
-	/*glActiveTexture(GL_TEXTURE0);
+	glActiveTexture(GL_TEXTURE0);
 	int texture_location = glGetUniformLocation(gpuProgram.getId(), "vol");
-	glUniform1i(texture_location, 0);
-	glBindTexture(GL_TEXTURE_3D, texture.textureId);*/
-	gpuProgram.setUniform(texture, std::string("vol"));
+	glUniform1i(texture_location, 0); //linking the sampler to the texture's location
+	glBindTexture(GL_TEXTURE_3D, texture.textureId);
+	gpuProgram.setUniform(texture, std::string("vol")); //kell ez? a "vol" tipusa sampler3D, Uniform1i linkeli a tex.hez
 
 	glBindVertexArray(vao);  // Draw call
 	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);

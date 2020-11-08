@@ -5,6 +5,8 @@ precision highp float;		// normal floats, makes no difference on desktop compute
 uniform mat4 MVP;			// uniform variable, the Model-View-Projection transformation matrix
 layout(location = 0) in vec2 vp;	// Varying input: vp = vertex position is expected in attrib array 0
 
-void main() {
-	gl_Position = vec4(vp.x, vp.y, 0, 1) * MVP;		// transform vp from modeling space to normalized device space
+out vec2 uv;
+	
+void main(){
+	uv = (vp + 1.0f)/2.0f;
 }

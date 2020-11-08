@@ -239,13 +239,13 @@ public:
 //---------------------------
 class Texture3D {
 private:
-	int x, y, z = 0;
+
 	//---------------------------
 	std::vector<GLushort> load(std::string pathname) {
-		FILE* file = fopen(pathname.c_str(), "r");
+		FILE* file = fopen(pathname.c_str(), "rb");
 
 		GLushort FileHeader[3];
-		fread(&FileHeader, sizeof(GLushort), 3, file);
+		fread(&FileHeader, 3, sizeof(GLushort), file);
 		x = (int)FileHeader[0];
 		y = (int)FileHeader[1];
 		z = (int)FileHeader[2];
@@ -257,6 +257,7 @@ private:
 		//fseek(file, 0, SEEK_SET);
 		std::vector<GLushort> bImage(size);
 		fread(&bImage[0], sizeof(GLushort), size, file); 	// read the pixels
+
 
 		/*for each (vec4 var in bImage)
 		{
@@ -271,6 +272,7 @@ private:
 	}
 
 public:
+	int x, y, z = 0;
 	unsigned int textureId = 0;
 
 	Texture3D() { textureId = 0; }
