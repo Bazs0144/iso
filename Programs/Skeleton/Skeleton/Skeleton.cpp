@@ -3,10 +3,8 @@
 GPUProgram gpuProgram; // vertex and fragment shaders
 unsigned int vao;	   // virtual world on the GPU
 Texture3D texture;
-unsigned short resolution;
-unsigned short isolevel = 50;
-
-
+float resolution;
+float isolevel = 50.0;
 
 struct Camera {
 
@@ -64,7 +62,7 @@ void setUniforms() {
 	gpuProgram.setUniform(camera.wEye, "eye");
 	gpuProgram.setUniform(normalize(camera.wVup), "up");
 	gpuProgram.setUniform(vec3(0.0f, 0.6f, 0.6f), "kd"); //whatever
-	gpuProgram.setUniform(vec4(0,0,0,0), "background");
+	gpuProgram.setUniform(vec3(0,0,0), "background");
 	gpuProgram.setUniform(light.Le, "light.Le");
 	gpuProgram.setUniform(light.wLightPos, "light.wLightPos");
 }
@@ -74,16 +72,16 @@ void onInitialization() {
 	glViewport(0, 0, windowWidth, windowHeight);
 	glEnable(GL_DEPTH_TEST); //kell?
 	glDisable(GL_CULL_FACE);
-	glEnable(GL_TEXTURE_3D);
+	//glEnable(GL_TEXTURE_3D); 
 	ShaderProgramSource source = parserShader("./vertex.vert", "./fragment.frag");
+
+	texture = Texture3D("./res/stagbeetle.dat");
+	resolution = max(max(texture.x, texture.y), texture.z);
 
 	// create program for the GPU
 	gpuProgram.create(&(source.VertexSource[0]), &(source.FragmentSource[0]), "outColor");
 	initScene(); //setup camera and light
 	setUniforms(); 
-
-	texture = Texture3D("./res/stagbeetle.dat");
-	resolution = max(max(texture.x, texture.y), texture.z);
 
 	glGenVertexArrays(1, &vao);	// get 1 vao id
 	glBindVertexArray(vao);		// make it active
@@ -107,14 +105,13 @@ void onDisplay() {
 	glClear(GL_COLOR_BUFFER_BIT); // clear frame buffer
 
 	// Set color to (0, 1, 0) = green
-	int location = glGetUniformLocation(gpuProgram.getId(), "color");
-	glUniform3f(location, .1f, 0.0f, .1f); // 3 floats
 
 	float MVPtransf[4][4] = { 1, 0, 0, 0,    // MVP matrix, 
 							  0, 1, 0, 0,    // row-major!
 							  0, 0, 1, 0,
 							  0, 0, 0, 1 };
 
+	int location;
 	location = glGetUniformLocation(gpuProgram.getId(), "MVP");	// Get the GPU location of uniform variable MVP
 	glUniformMatrix4fv(location, 1, GL_TRUE, &MVPtransf[0][0]);	// Load a 4x4 row-major float matrix to the specified location
 

@@ -300,7 +300,7 @@ public:
 		if (textureId == 0) glGenTextures(1, &textureId);  				// id generation
 		glBindTexture(GL_TEXTURE_3D, textureId);    // binding
 
-		glTexImage3D(GL_TEXTURE_3D, 0, GL_RED, x, y, z, 0, GL_INTENSITY, GL_UNSIGNED_SHORT, &image[0]);
+		glTexImage3D(GL_TEXTURE_3D, 0, GL_R16UI, x, y, z, 0, GL_RED_INTEGER, GL_UNSIGNED_SHORT, &image[0]);
 
 		glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, sampling); // sampling
 		glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, sampling);
@@ -362,6 +362,7 @@ class GPUProgram {
 		if (location < 0) printf("uniform %s cannot be set\n", name.c_str());
 		return location;
 	}
+
 
 public:
 	GPUProgram(bool _waitError = true) { shaderProgramId = 0; waitError = _waitError; }
@@ -441,31 +442,37 @@ public:
 	void setUniform(int i, const std::string& name) {
 		int location = getLocation(name);
 		if (location >= 0) glUniform1i(location, i);
+
 	}
 
 	void setUniform(float f, const std::string& name) {
 		int location = getLocation(name);
 		if (location >= 0) glUniform1f(location, f);
+		//std::cout << name << " location: " << location << '\n';
 	}
 
 	void setUniform(const vec2& v, const std::string& name) {
 		int location = getLocation(name);
 		if (location >= 0) glUniform2fv(location, 1, &v.x);
+		//std::cout << name << " location: " << location << '\n';
 	}
 
 	void setUniform(const vec3& v, const std::string& name) {
 		int location = getLocation(name);
 		if (location >= 0) glUniform3fv(location, 1, &v.x);
+		//std::cout << name << " location: " << location << '\n';
 	}
 
 	void setUniform(const vec4& v, const std::string& name) {
 		int location = getLocation(name);
 		if (location >= 0) glUniform4fv(location, 1, &v.x);
+		//std::cout << name << " location: " << location << '\n';
 	}
 
 	void setUniform(const mat4& mat, const std::string& name) {
 		int location = getLocation(name);
 		if (location >= 0) glUniformMatrix4fv(location, 1, GL_TRUE, mat);
+		//std::cout << name << " location: " << location << '\n';
 	}
 
 	void setUniform(const Texture& texture, const std::string& samplerName, unsigned int textureUnit = 0) {
