@@ -118,11 +118,7 @@ void onDisplay() {
 	location = glGetUniformLocation(gpuProgram.getId(), "MVP");	// Get the GPU location of uniform variable MVP
 	glUniformMatrix4fv(location, 1, GL_TRUE, &MVPtransf[0][0]);	// Load a 4x4 row-major float matrix to the specified location
 
-	glActiveTexture(GL_TEXTURE0);
-	int texture_location = glGetUniformLocation(gpuProgram.getId(), "vol");
-	glUniform1i(texture_location, 0); //linking the sampler to the texture's location
-	glBindTexture(GL_TEXTURE_3D, texture.textureId);
-	gpuProgram.setUniform(texture, std::string("vol")); //kell ez? a "vol" tipusa sampler3D, Uniform1i linkeli a tex.hez
+	gpuProgram.setUniform(texture, std::string("vol")); //setting the sampler and linking to the texture
 
 	glBindVertexArray(vao);  // Draw call
 	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
