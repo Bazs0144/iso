@@ -258,7 +258,6 @@ private:
 		std::vector<GLushort> bImage(size);
 		fread(&bImage[0], sizeof(GLushort), size, file); 	// read the pixels
 
-
 		/*for each (vec4 var in bImage)
 		{
 			if (var.x != 0) {
@@ -284,6 +283,7 @@ public:
 
 
 	Texture3D(const Texture3D& texture) {
+		
 		printf("\nError: Texture resource is not copied on GPU!!!\n");
 	}
 
@@ -300,13 +300,21 @@ public:
 		if (textureId == 0) glGenTextures(1, &textureId);  				// id generation
 		glBindTexture(GL_TEXTURE_3D, textureId);    // binding
 
-		glTexImage3D(GL_TEXTURE_3D, 0, GL_R16UI, x, y, z, 0, GL_RED_INTEGER, GL_UNSIGNED_SHORT, &image[0]);
+		auto err = glGetError();
+		std::cout << "errorc0: " << err << std::endl;
+
+		std::vector<float> tmp;
+		tmp.reserve(image.size());
+
+		for (auto& v : image)
+		{
+			tmp.push_back((float)v);
+		}
+		//glTexImage3D(GL_TEXTURE_3D, 0, GL_R16UI, x, y, z, 0, GL_RED_INTEGER, GL_UNSIGNED_SHORT, image.data());
+		glTexImage3D(GL_TEXTURE_3D, 0, GL_R32F, x, y, z, 0, GL_RED, GL_FLOAT, tmp.data());
 
 		glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, sampling); // sampling
 		glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, sampling);
-		glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_CLAMP);
-		glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_CLAMP);
-		glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_CLAMP);
 	}
 
 	~Texture3D() {
@@ -487,9 +495,9 @@ public:
 	void setUniform(const Texture3D& texture, const std::string& samplerName, unsigned int textureUnit = 0) {
 		int location = getLocation(samplerName);
 		if (location >= 0) {
-			glUniform1i(location, textureUnit);
 			glActiveTexture(GL_TEXTURE0 + textureUnit);
 			glBindTexture(GL_TEXTURE_3D, texture.textureId);
+			glUniform1i(location, textureUnit);
 		}
 	}
 

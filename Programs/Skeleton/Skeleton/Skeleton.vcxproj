@@ -74,11 +74,15 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="DebugOpenGL.cpp" />
     <ClCompile Include="framework.cpp" />
+    <ClCompile Include="quad.cpp" />
     <ClCompile Include="Skeleton.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="DebugOpenGL.hpp" />
     <ClInclude Include="framework.h" />
+    <ClInclude Include="quad.hpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="fragment.frag" />

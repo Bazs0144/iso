@@ -40,4 +40,6 @@ void main() {
 			color = vec4(illum.x, illum.y, illum.z, 1);
 		}
 	}
+
+	//color = texture(vol, vec3(uv, 64));
 }
