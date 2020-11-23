@@ -1,8 +1,11 @@
 #include "framework.h"
+#include "DebugOpenGL.hpp"
+#include "quad.hpp"
 
 GPUProgram gpuProgram; // vertex and fragment shaders
 unsigned int vao;	   // virtual world on the GPU
 Texture3D texture;
+Quad fsquad;
 float resolution;
 float isolevel = 50.0;
 
@@ -48,61 +51,53 @@ Camera camera;
 Light light;
 
 void initScene() {
-	camera.wEye = vec3(0, 0, 2);
+	camera.wEye = vec3(5, 15, 13);
 	camera.wLookat = vec3(0, 0, 0);
-	camera.wVup = vec3(0, 1, 0);
-	light.wLightPos = vec4(-10, 10, 10, 8);
+	camera.wVup = vec3(0, 0.2, -1);
+	light.wLightPos = vec4(0, 10, 10, -8);
 	light.Le = vec3(0.8, 0.8, 0.8);
 }
 
 void setUniforms() {
+	gpuProgram.Use();
 	gpuProgram.setUniform(isolevel, "isolevel");
 	gpuProgram.setUniform(resolution, "R");
 	gpuProgram.setUniform(camera.wLookat, "lat");
 	gpuProgram.setUniform(camera.wEye, "eye");
 	gpuProgram.setUniform(normalize(camera.wVup), "up");
 	gpuProgram.setUniform(vec3(0.0f, 0.6f, 0.6f), "kd"); //whatever
-	gpuProgram.setUniform(vec3(0,0,0), "background");
+	gpuProgram.setUniform(vec3(.1, .1, 0), "background");
 	gpuProgram.setUniform(light.Le, "light.Le");
 	gpuProgram.setUniform(light.wLightPos, "light.wLightPos");
 }
 
 // Initialization, create an OpenGL context
 void onInitialization() {
+	auto err = glGetError();
+
+	DebugOpenGL::init();
+	DebugOpenGL::enableCallback(true);
+	DebugOpenGL::enableLowSeverityMessages(false);
+
 	glViewport(0, 0, windowWidth, windowHeight);
 	glEnable(GL_DEPTH_TEST); //kell?
-	glDisable(GL_CULL_FACE);
-	//glEnable(GL_TEXTURE_3D); 
 	ShaderProgramSource source = parserShader("./vertex.vert", "./fragment.frag");
 
-	texture = Texture3D("./res/stagbeetle.dat");
+	texture.create("./res/stagbeetle-small.dat");
 	resolution = max(max(texture.x, texture.y), texture.z);
 
 	// create program for the GPU
 	gpuProgram.create(&(source.VertexSource[0]), &(source.FragmentSource[0]), "outColor");
 	initScene(); //setup camera and light
-	setUniforms(); 
+	setUniforms();
 
-	glGenVertexArrays(1, &vao);	// get 1 vao id
-	glBindVertexArray(vao);		// make it active
-	unsigned int vbo;		// vertex buffer object
-	glGenBuffers(1, &vbo);	// Generate 1 buffer
-	glBindBuffer(GL_ARRAY_BUFFER, vbo);
-
-	// Geometry: fullscreen quad
-	float cVtx[] = { -1,-1, 1,-1, 1,1, -1, 1 };
-	glBufferData(GL_ARRAY_BUFFER, sizeof(cVtx), cVtx, GL_STATIC_DRAW);
-	glEnableVertexAttribArray(0);  // AttribArray 0
-	glVertexAttribPointer(0,       // vbo -> AttribArray 0
-		2, GL_FLOAT, GL_FALSE, // two floats/attrib, not fixed-point
-		0, NULL); 		     // stride, offset: tightly packed
-
+	fsquad.init();
 }
 
 // Window has become invalid: Redraw
 void onDisplay() {
 	glClearColor(0, 0, 0, 0);     // background color
-	glClear(GL_COLOR_BUFFER_BIT); // clear frame buffer
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // clear frame buffer
 
 	// Set color to (0, 1, 0) = green
 
@@ -111,14 +106,18 @@ void onDisplay() {
 							  0, 0, 1, 0,
 							  0, 0, 0, 1 };
 
+	gpuProgram.Use();
+	//gpuProgram.setUniform(MVPtransf[0][0], "MVP");
+
 	int location;
 	location = glGetUniformLocation(gpuProgram.getId(), "MVP");	// Get the GPU location of uniform variable MVP
 	glUniformMatrix4fv(location, 1, GL_TRUE, &MVPtransf[0][0]);	// Load a 4x4 row-major float matrix to the specified location
 
-	gpuProgram.setUniform(texture, std::string("vol")); //setting the sampler and linking to the texture
+	gpuProgram.setUniform(texture, std::string("vol"), 0); //setting the sampler and linking to the texture
 
-	glBindVertexArray(vao);  // Draw call
-	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+	//glBindVertexArray(vao);  // Draw call
+	//glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+	fsquad.render();
 
 	glutSwapBuffers(); // exchange buffers for double buffering
 }
@@ -161,4 +160,5 @@ void onMouse(int button, int state, int pX, int pY) { // pX, pY are the pixel co
 // Idle event indicating that some time elapsed: do animation here
 void onIdle() {
 	long time = glutGet(GLUT_ELAPSED_TIME); // elapsed time since the start of the program
+	glutPostRedisplay();
 }
