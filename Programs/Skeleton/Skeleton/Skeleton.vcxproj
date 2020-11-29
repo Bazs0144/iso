@@ -112,6 +112,7 @@
   <ItemGroup>
     <None Include="..\bin\fragment.frag" />
     <None Include="..\bin\vertex.vert" />
+    <None Include="alphablended.frag" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

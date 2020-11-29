@@ -51,7 +51,7 @@ void initScene() {
 	camera.wLookat = vec3(0.5, 0.5, 0.5);
 	camera.wVup = vec3(0, 1, 0);
 	light.wLightPos = vec4(0, 10, 10, -8);
-	light.Le = vec3(0.8, 0.8, 0.8);
+	light.Le = vec3(0.9, 0.9, 0.9);
 }
 
 void setUniforms() {
@@ -148,9 +148,12 @@ void onInitialization() {
 
 	glViewport(0, 0, windowWidth - 400, windowHeight);
 	glEnable(GL_DEPTH_TEST); //kell?
+	glEnable(GL_BLEND);
 	ShaderProgramSource source = parserShader("./vertex.vert", "./fragment.frag");
 
+
 	texture.create("./res/stagbeetle-small.dat");
+	//texture.create("./res/head.vox");
 	resolution = max(max(texture.x, texture.y), texture.z);
 
 	// create program for the GPU
