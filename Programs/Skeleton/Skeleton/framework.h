@@ -27,7 +27,7 @@
 #endif
 
 // Resolution of screen
-const unsigned int windowWidth = 700, windowHeight = 700;
+const unsigned int windowWidth = 1100, windowHeight = 700;
 
 //--------------------------
 struct vec2 {
@@ -85,7 +85,7 @@ inline vec3 operator*(float a, const vec3& v) { return vec3(v.x * a, v.y * a, v.
 struct vec4 {
 	//--------------------------
 	float x, y, z, w;
-
+	vec4(vec3 v, float aw) { x = v.x; y = v.y; z = v.z; w = aw; }
 	vec4(float x0 = 0, float y0 = 0, float z0 = 0, float w0 = 0) { x = x0; y = y0; z = z0; w = w0; }
 	float& operator[](int j) { return *(&x + j); }
 	float operator[](int j) const { return *(&x + j); }

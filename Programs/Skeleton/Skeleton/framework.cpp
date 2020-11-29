@@ -4,6 +4,9 @@
 // Do not change it if you want to submit a homework.
 //=============================================================================================
 #include "framework.h"
+#include "imgui/imgui.h"
+#include "imgui/imgui_impl_glut.h"
+#include "imgui/imgui_impl_opengl3.h"
 
 // Initialization
 void onInitialization();
@@ -37,7 +40,7 @@ int main(int argc, char* argv[]) {
 	glutInitContextVersion(majorVersion, minorVersion);
 #endif
 	glutInitWindowSize(windowWidth, windowHeight);				// Application window is initially of resolution 600x600
-	glutInitWindowPosition(100, 100);							// Relative location of the application window
+	glutInitWindowPosition(0, 0);							// Relative location of the application window
 #if defined(__APPLE__)
 	glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE | GLUT_DEPTH | GLUT_3_2_CORE_PROFILE);  // 8 bit R,G,B,A + double buffer + depth buffer
 #else
@@ -70,6 +73,21 @@ int main(int argc, char* argv[]) {
 	glutKeyboardUpFunc(onKeyboardUp);
 	glutMotionFunc(onMouseMotion);
 
+	IMGUI_CHECKVERSION();
+	ImGui::CreateContext();
+	ImGuiIO& io = ImGui::GetIO(); (void)io;
+
+	ImGui::StyleColorsDark();
+
+	ImGui_ImplGLUT_Init();
+	ImGui_ImplGLUT_InstallFuncs();
+	ImGui_ImplOpenGL3_Init();
+
 	glutMainLoop();
+	
+	ImGui_ImplOpenGL3_Shutdown();
+	ImGui_ImplGLUT_Shutdown();
+	ImGui::DestroyContext();
+
 	return 1;
 }
