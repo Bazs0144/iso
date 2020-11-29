@@ -49,5 +49,8 @@
     <None Include="fragment.frag">
       <Filter>Source Files\Shader</Filter>
     </None>
+    <None Include="alphablended.frag">
+      <Filter>Source Files\Shader</Filter>
+    </None>
   </ItemGroup>
 </Project>

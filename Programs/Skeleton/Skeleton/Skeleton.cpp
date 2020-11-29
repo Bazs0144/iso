@@ -55,7 +55,7 @@ void initScene() {
 	camera.wLookat = vec3(0, 0, 0);
 	camera.wVup = vec3(0, 0.2, -1);
 	light.wLightPos = vec4(0, 10, 10, -8);
-	light.Le = vec3(0.8, 0.8, 0.8);
+	light.Le = vec3(0.9, 0.9, 0.9);
 }
 
 void setUniforms() {
@@ -65,8 +65,8 @@ void setUniforms() {
 	gpuProgram.setUniform(camera.wLookat, "lat");
 	gpuProgram.setUniform(camera.wEye, "eye");
 	gpuProgram.setUniform(normalize(camera.wVup), "up");
-	gpuProgram.setUniform(vec3(0.0f, 0.6f, 0.6f), "kd"); //whatever
-	gpuProgram.setUniform(vec3(.1, .1, 0), "background");
+	gpuProgram.setUniform(vec3(0.8f, 0.8f, 0.8f), "kd"); 
+	gpuProgram.setUniform(vec3(0.0f, 0.0f, 0.0f), "background");
 	gpuProgram.setUniform(light.Le, "light.Le");
 	gpuProgram.setUniform(light.wLightPos, "light.wLightPos");
 }
@@ -80,10 +80,12 @@ void onInitialization() {
 	DebugOpenGL::enableLowSeverityMessages(false);
 
 	glViewport(0, 0, windowWidth, windowHeight);
-	glEnable(GL_DEPTH_TEST); //kell?
-	ShaderProgramSource source = parserShader("./vertex.vert", "./fragment.frag");
+	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_BLEND);
+	ShaderProgramSource source = parserShader("./vertex.vert", "./alphablended.frag");
 
-	texture.create("./res/stagbeetle-small.dat");
+	//texture.create("./res/stagbeetle-small.dat");
+	texture.create("./res/head.vox");
 	resolution = max(max(texture.x, texture.y), texture.z);
 
 	// create program for the GPU

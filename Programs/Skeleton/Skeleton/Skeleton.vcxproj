@@ -85,6 +85,7 @@
     <ClInclude Include="quad.hpp" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="alphablended.frag" />
     <None Include="fragment.frag" />
     <None Include="vertex.vert" />
   </ItemGroup>

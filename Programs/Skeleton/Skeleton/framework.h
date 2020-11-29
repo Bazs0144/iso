@@ -87,6 +87,7 @@ struct vec4 {
 	float x, y, z, w;
 
 	vec4(float x0 = 0, float y0 = 0, float z0 = 0, float w0 = 0) { x = x0; y = y0; z = z0; w = w0; }
+	vec4(vec3 v, float w0 = 0) { x = v.x; y = v.y; z = v.z; w = w0; }
 	float& operator[](int j) { return *(&x + j); }
 	float operator[](int j) const { return *(&x + j); }
 
@@ -241,7 +242,7 @@ class Texture3D {
 private:
 
 	//---------------------------
-	std::vector<GLushort> load(std::string pathname) {
+	std::vector<GLfloat> load(std::string pathname) {
 		FILE* file = fopen(pathname.c_str(), "rb");
 
 		GLushort FileHeader[3];
@@ -267,7 +268,37 @@ private:
 		} //FOR DEBUGGING*/
 		fclose(file);
 
-		return bImage;
+		std::vector<float> tmp;
+		tmp.reserve(bImage.size());
+
+		for (auto& v : bImage)
+		{
+			tmp.push_back((float)v);
+		}
+
+		return tmp;
+	}
+
+	//atmenetileg, a head.vox betoltesehez
+	std::vector<GLfloat> loadVolume(std::string fileName) {
+		FILE* dataFile = fopen(fileName.c_str(), "rb");
+		int FileHeader[3];
+		std::vector<GLfloat> volumeData;
+		char* magicNum = new char[2];
+		fread(magicNum, sizeof(char), 2, dataFile);
+		if ('V' == magicNum[0] && 'F' == magicNum[1]) {
+			fread(FileHeader, sizeof(int), 3, dataFile);
+			x = (int)FileHeader[0];
+			y = (int)FileHeader[1];
+			z = (int)FileHeader[2];
+			int size = x*y*z;
+			volumeData.resize(size);
+			fread(&volumeData[0], sizeof(float), size, dataFile);
+		}
+		else {
+			std::cout << "Can't open volume file %s\n" << fileName << std::endl;
+		}
+		return volumeData;
 	}
 
 public:
@@ -291,27 +322,25 @@ public:
 		printf("\nError: Texture resource is not copied on GPU!!!\n");
 	}
 
+	//void create(std::string pathname) {
+	//	std::vector<GLushort> image = load(pathname);
+	//	if (image.size() > 0) create(image);
+	//}
+
+	
 	void create(std::string pathname) {
-		std::vector<GLushort> image = load(pathname);
+		std::vector<GLfloat> image = loadVolume(pathname); //for now: "loadVolume" for head.vox, "load" for stagbeetle
 		if (image.size() > 0) create(image);
 	}
 
-	void create(const std::vector<GLushort>& image, int sampling = GL_LINEAR) {
+	void create(const std::vector<GLfloat>& image, int sampling = GL_LINEAR) {
 		if (textureId == 0) glGenTextures(1, &textureId);  				// id generation
 		glBindTexture(GL_TEXTURE_3D, textureId);    // binding
 
 		auto err = glGetError();
 		std::cout << "errorc0: " << err << std::endl;
 
-		std::vector<float> tmp;
-		tmp.reserve(image.size());
-
-		for (auto& v : image)
-		{
-			tmp.push_back((float)v);
-		}
-		//glTexImage3D(GL_TEXTURE_3D, 0, GL_R16UI, x, y, z, 0, GL_RED_INTEGER, GL_UNSIGNED_SHORT, image.data());
-		glTexImage3D(GL_TEXTURE_3D, 0, GL_R32F, x, y, z, 0, GL_RED, GL_FLOAT, tmp.data());
+		glTexImage3D(GL_TEXTURE_3D, 0, GL_R32F, x, y, z, 0, GL_RED, GL_FLOAT, &image[0]);
 
 		glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, sampling); // sampling
 		glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, sampling);
