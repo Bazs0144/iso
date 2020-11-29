@@ -328,7 +328,7 @@ public:
 
 	
 	void create(std::string pathname) {
-		std::vector<GLfloat> image = load(pathname); //for now: "loadVolume" for head.vox, "load" for stagbeetle
+		std::vector<GLfloat> image = loadVolume(pathname); //load(pathname); //for now: "loadVolume" for head.vox, "load" for stagbeetle
 		if (image.size() > 0) create(image);
 	}
 

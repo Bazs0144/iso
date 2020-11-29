@@ -116,8 +116,10 @@ void my_display_code()
 				cameraView[8], cameraView[9], cameraView[10], cameraView[11],
 				cameraView[12], cameraView[13], cameraView[14], cameraView[15]
 			);
-			//vec4 temp = ((vec4(rotate, 1.f)) * m4);
-			//rotate = camera.wLookat + vec3(temp.x, temp.y, temp.z);
+		    
+			vec4 temp = (vec4(rotate - camera.wLookat, 1) * m4) + camera.wLookat;
+			camera.wEye = vec3(temp.x, temp.y, temp.z);
+
 			ImGui::SliderFloat("distance", &distance, .1f, 10);
 			//rotate = normalize(vec3(temp.x, temp.y, temp.z) - camera.wLookat);
 		
@@ -152,8 +154,8 @@ void onInitialization() {
 	ShaderProgramSource source = parserShader("./vertex.vert", "./fragment.frag");
 
 
-	texture.create("./res/stagbeetle-small.dat");
-	//texture.create("./res/head.vox");
+	//texture.create("./res/stagbeetle-small.dat");
+	texture.create("./res/head.vox");
 	resolution = max(max(texture.x, texture.y), texture.z);
 
 	// create program for the GPU
@@ -180,7 +182,6 @@ void onDisplay() {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // clear frame buffer
 
 
-	initScene(); //setup camera and light
 	setUniforms();
 
 	// Set color to (0, 1, 0) = green
