@@ -14,6 +14,7 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include <iomanip>
 
 #if defined(__APPLE__)
 #include <GLUT/GLUT.h>
@@ -70,6 +71,10 @@ struct vec3 {
 	float abs() {
 		return sqrtf(x * x + y * y + z * z);
 	}
+	void print() { 
+		std::cout << std::fixed << std::setprecision(2);
+		std::cout << "\t(" << x << '\t' << y << '\t' << z << ")\n";
+	}
 };
 
 inline float dot(const vec3& v1, const vec3& v2) { return (v1.x * v2.x + v1.y * v2.y + v1.z * v2.z); }
@@ -99,6 +104,10 @@ struct vec4 {
 	vec4 operator-(const vec4& v)  const { return vec4(x - v.x, y - v.y, z - v.z, w - v.w); }
 	vec4 operator*(const vec4& v) const { return vec4(x * v.x, y * v.y, z * v.z, w * v.w); }
 	void operator+=(const vec4 right) { x += right.x; y += right.y; z += right.z, w += right.z; }
+	void print() {
+		std::cout << std::fixed << std::setprecision(2); 
+		std::cout << "\t(" << x << '\t' << y << '\t' << z << '\t' << w << ")\n"; 
+	}
 };
 
 inline float dot(const vec4& v1, const vec4& v2) {
@@ -131,6 +140,9 @@ public:
 	vec4& operator[](int i) { return rows[i]; }
 	vec4 operator[](int i) const { return rows[i]; }
 	operator float* () const { return (float*)this; }
+	void print() {
+		std::cout << "mat4: \n"; rows[0].print(); rows[1].print(); rows[2].print(); rows[3].print();
+	}
 };
 
 inline vec4 operator*(const vec4& v, const mat4& mat) {
