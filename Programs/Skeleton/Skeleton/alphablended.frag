@@ -30,7 +30,7 @@ void main() {
 	float en = max(max(ti.x,ti.y),ti.z); //actual entrance point
 	float ex = min(min(to.x,to.y),to.z); //actual exit point
 	vec4 color = vec4(background.x, background.y, background.z, 1);
-	sum = vec4(0,0,0,0);
+	sum = color;
 	vec3 dx=vec3(1/R,0,0), dy=vec3(0,1/R,0), dz=vec3(0,0,1/R); 
 	for(float t = en; t < ex; t += dt) { //stepping from entrance to exit point
 		vec3 q = eye + dir * t;

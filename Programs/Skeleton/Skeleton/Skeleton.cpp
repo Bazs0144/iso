@@ -9,7 +9,7 @@ GPUProgram gpuProgram; // vertex and fragment shaders
 unsigned int vao;	   // virtual world on the GPU
 Texture3D texture;
 Quad fsquad;
-vec3 background = vec3(.1, 0, .1);
+vec3 background = vec3(.2f, .2f, .2f);
 float resolution;
 float isolevel = 0.5;
 vec3 rotate = vec3(0.5, 0.5, 2);;
@@ -68,7 +68,7 @@ void setUniforms() {
 	gpuProgram.setUniform(light.Le, "light.Le");
 	gpuProgram.setUniform(light.La, "light.La");
 	gpuProgram.setUniform(light.wLightPos, "light.wLightPos");
-	gpuProgram.setUniform(distance, "dist");
+	//gpuProgram.setUniform(distance, "dist");
 	gpuProgram.setUniform(alphaOn, "alphaOn");
 }
 
@@ -84,7 +84,7 @@ static float cameraView[16] =
   0.f, 1.f, 0.f, 0.f,
   0.f, 0.f, 1.f, 0.f,
   0.f, 0.f, 0.f, 1.f };
-float dist = 1.f;
+float dist = camera.wEye.abs();
 
 void my_display_code()
 {
@@ -92,7 +92,7 @@ void my_display_code()
 	{
 	ImGui::Begin("editor", &open, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoMove);// Create a window called "Hello, world!" and append into it.
 		ImGui::SetWindowSize(ImVec2(400, 700));
-		ImGui::SetWindowPos(ImVec2(700, 0));
+		ImGui::SetWindowPos(ImVec2(700, 0)); 
 
 		if (ImGui::CollapsingHeader("Isolevel")) {
 			 // Edit bools storing our window open/close state
@@ -125,8 +125,8 @@ void my_display_code()
 			vec4 temp = (vec4(rotate - camera.wLookat, 1) * m4) + camera.wLookat;
 			camera.wEye = vec3(temp.x, temp.y, temp.z);
 
-			ImGui::SliderFloat("distance", &distance, .1f, 10);
-			//rotate = normalize(vec3(temp.x, temp.y, temp.z) - camera.wLookat);
+			//ImGui::InputFloat("dist", &dist);
+			//ImGui::SliderFloat("distance", &distance, .1f, 10);
 		
 		}
 		else {
@@ -139,7 +139,7 @@ void my_display_code()
 		ImGui::End();
 		if (isCameraOpened) {
 			ImGuiIO& io = ImGui::GetIO();
-			ImGuizmo::ViewManipulate(cameraView, dist, ImVec2(io.DisplaySize.x - 400 - 200, 0), ImVec2(150, 150), 0);
+			ImGuizmo::ViewManipulate(cameraView, 1, ImVec2(io.DisplaySize.x - 400 - 200, 0), ImVec2(150, 150), 0);
 		}
 	}
 }

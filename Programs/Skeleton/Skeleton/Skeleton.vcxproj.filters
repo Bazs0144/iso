@@ -127,8 +127,9 @@
     <None Include="..\bin\fragment.frag">
       <Filter>Resource Files\Shader</Filter>
     </None>
-    <None Include="alphablended.frag">
-      <Filter>Source Files\Shader</Filter>
+    <None Include="alphablended.frag" />
+    <None Include="..\bin\alphablended.frag">
+      <Filter>Resource Files\Shader</Filter>
     </None>
   </ItemGroup>
 </Project>

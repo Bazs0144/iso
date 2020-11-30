@@ -110,6 +110,7 @@
     <ClInclude Include="quad.hpp" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\bin\alphablended.frag" />
     <None Include="..\bin\fragment.frag" />
     <None Include="..\bin\vertex.vert" />
     <None Include="alphablended.frag" />
