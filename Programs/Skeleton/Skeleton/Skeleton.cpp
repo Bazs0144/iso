@@ -12,7 +12,7 @@ Quad fsquad;
 vec3 background = vec3(.2f, .2f, .2f);
 float resolution;
 float isolevel = 0.5;
-vec3 rotate = vec3(0.5, 0.5, 2);;
+vec3 rotate = vec3(0.5, 0.5, 2);
 float distance = 1;
 bool alphaOn = false;
 mat4 m4 = mat4(
@@ -31,6 +31,13 @@ public:
 		asp = (float)windowWidth / windowHeight;
 		fov = 75.0f * (float)M_PI / 180.0f;
 		fp = 1; bp = 20;
+		vec3 w = wEye - wLookat;
+		float l = length(w);
+		float windowSize = l * tanf(fov / 2);
+		wRight = normalize(cross(wVup, w)) * windowSize;
+	}
+
+	void updateCamera() {
 		vec3 w = wEye - wLookat;
 		float l = length(w);
 		float windowSize = l * tanf(fov / 2);
@@ -122,8 +129,13 @@ void my_display_code()
 				cameraView[12], cameraView[13], cameraView[14], cameraView[15]
 			);
 		    
+			m4.print();
 			vec4 temp = (vec4(rotate - camera.wLookat, 1) * m4) + camera.wLookat;
 			camera.wEye = vec3(temp.x, temp.y, temp.z);
+			//temp = (vec4(vec3(0,1,0), 1) * m4);
+			//camera.wVup = normalize(vec3(temp.x, temp.y, temp.z));
+			//camera.updateCamera();
+
 
 			//ImGui::InputFloat("dist", &dist);
 			//ImGui::SliderFloat("distance", &distance, .1f, 10);
