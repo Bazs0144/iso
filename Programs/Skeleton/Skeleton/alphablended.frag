@@ -11,6 +11,7 @@ uniform float isolevel, R;
 uniform vec3 eye, lat, up;
 uniform Light light;
 uniform vec3 kd, background;
+uniform bool alphaOn;
 
 in vec2 uv;
 out vec4 sum;
@@ -33,17 +34,22 @@ void main() {
 	vec3 dx=vec3(1/R,0,0), dy=vec3(0,1/R,0), dz=vec3(0,0,1/R); 
 	for(float t = en; t < ex; t += dt) { //stepping from entrance to exit point
 		vec3 q = eye + dir * t;
-		if(texture(vol,q).x > 0){
-			vec3 L = normalize(light.wLightPos.xyz - q*light.wLightPos.w); //wLightPos in hom.coord., also accurate in case of directional lightsource
-			float density = texture(vol,q).x; //in [0,1]
+		float density = texture(vol,q).x; //in [0,1]
+		vec3 L = normalize(light.wLightPos.xyz - q*light.wLightPos.w); //wLightPos in hom.coord., also accurate in case of directional lightsource
+		if(density > isolevel){			
 			float alpha = clamp(alphaExp * (density - alphaCenter) + 0.5f, 0.0f, 1.0f);
 			vec3 N = vec3(float(texture(vol, q+dx) - texture(vol, q-dx)),
 						float(texture(vol, q+dy) - texture(vol, q-dy)),
 						float(texture(vol, q+dz) - texture(vol, q-dz)));
-			vec3 illum = light.Le * kd * max(dot(L, normalize(N)), 0.0f); //in [0,1]
+			vec3 illum = light.La*kd + light.Le * kd * max(dot(L, normalize(N)), 0.0f); //in [0,1]
 			color = vec4(illum, illum.x);
 			color *= vec4(density, density * density, density * density * density, 1.0f) + vec4(0.3f);	//density in [0,1]	
-			sum = (1.0f - alpha) * sum + alpha * color;
+			if(alphaOn){
+				sum = (1.0f - alpha) * sum + alpha * color;
+			}
+			else{
+				sum = color;
+			}
 		}
 	}
 }

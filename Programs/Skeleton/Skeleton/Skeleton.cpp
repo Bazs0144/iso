@@ -11,9 +11,10 @@ Texture3D texture;
 Quad fsquad;
 vec3 background = vec3(.1, 0, .1);
 float resolution;
-float isolevel = 50.0;
-vec3 rotate = vec3(10, 10, 10);
+float isolevel = 0.5;
+vec3 rotate = vec3(0.5, 0.5, 2);;
 float distance = 1;
+bool alphaOn = false;
 mat4 m4 = mat4(
 	1.f, 0.f, 0.f, 0.f,
 	0.f, 1.f, 0.f, 0.f,
@@ -39,7 +40,7 @@ public:
 };
 
 struct Light {
-	vec3 Le;
+	vec3 Le, La;
 	vec4 wLightPos;
 };
 
@@ -47,11 +48,12 @@ Camera camera;
 Light light;
 
 void initScene() {
-	camera.wEye = vec3(10, 10, 10);
+	camera.wEye = rotate;
 	camera.wLookat = vec3(0.5, 0.5, 0.5);
 	camera.wVup = vec3(0, 1, 0);
-	light.wLightPos = vec4(0, 10, 10, -8);
+	light.wLightPos = vec4(10, 10, 0, -8);
 	light.Le = vec3(0.9, 0.9, 0.9);
+	light.La = vec3(0.5, 0.5, 0.5);
 }
 
 void setUniforms() {
@@ -61,18 +63,20 @@ void setUniforms() {
 	gpuProgram.setUniform(camera.wLookat, "lat");
 	gpuProgram.setUniform(camera.wEye, "eye");
 	gpuProgram.setUniform(normalize(camera.wVup), "up");
-	gpuProgram.setUniform(vec3(0.0f, 0.6f, 0.6f), "kd"); //whatever
+	gpuProgram.setUniform(vec3(0.6f, 0.6f, 0.6f), "kd"); //whatever
 	gpuProgram.setUniform(background, "background");
 	gpuProgram.setUniform(light.Le, "light.Le");
+	gpuProgram.setUniform(light.La, "light.La");
 	gpuProgram.setUniform(light.wLightPos, "light.wLightPos");
 	gpuProgram.setUniform(distance, "dist");
+	gpuProgram.setUniform(alphaOn, "alphaOn");
 }
 
 // Our state
 // static bool show_demo_window = false;
 static bool exact = false;
 static float min_range = 0;
-static float max_range = 5000;
+static float max_range = 1.0f;
 static bool open = true;
 static bool isCameraOpened = false;
 static float cameraView[16] =
@@ -102,6 +106,7 @@ void my_display_code()
 			}
 
 			ImGui::Checkbox("Exact number", &exact);
+			ImGui::Checkbox("Alpha on", &alphaOn);
 		}
 		if (ImGui::CollapsingHeader("Background Color")) {
 			ImVec4 c = ImVec4(background.x, background.y, background.z, 1.00f);
@@ -151,7 +156,7 @@ void onInitialization() {
 	glViewport(0, 0, windowWidth - 400, windowHeight);
 	glEnable(GL_DEPTH_TEST); //kell?
 	glEnable(GL_BLEND);
-	ShaderProgramSource source = parserShader("./vertex.vert", "./fragment.frag");
+	ShaderProgramSource source = parserShader("./vertex.vert", "./alphablended.frag");
 
 
 	//texture.create("./res/stagbeetle-small.dat");
@@ -200,8 +205,6 @@ void onDisplay() {
 
 	gpuProgram.setUniform(texture, std::string("vol"), 0); //setting the sampler and linking to the texture
 
-	//glBindVertexArray(vao);  // Draw call
-	//glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 	fsquad.render();
 
 	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());

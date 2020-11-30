@@ -251,8 +251,8 @@ private:
 		z = (int)FileHeader[2];
 
 
-		/*x = y = 208;
-		z = 123;*/
+		//x = y = 208  z = 123 stagbeetle
+		//x=y=z=124 head
 		unsigned int size = x * y * z;
 		//fseek(file, 0, SEEK_SET);
 		std::vector<GLushort> bImage(size);
@@ -290,6 +290,7 @@ private:
 			x = (int)FileHeader[0];
 			y = (int)FileHeader[1];
 			z = (int)FileHeader[2];
+			std::cout << "x: " << x << " y: " << y << " z: " << z <<'\n';
 			int size = x*y*z;
 			volumeData.resize(size);
 			fread(&volumeData[0], sizeof(float), size, dataFile);
@@ -321,12 +322,7 @@ public:
 		printf("\nError: Texture resource is not copied on GPU!!!\n");
 	}
 
-	//void create(std::string pathname) {
-	//	std::vector<GLushort> image = load(pathname);
-	//	if (image.size() > 0) create(image);
-	//}
 
-	
 	void create(std::string pathname) {
 		std::vector<GLfloat> image = loadVolume(pathname); //load(pathname); //for now: "loadVolume" for head.vox, "load" for stagbeetle
 		if (image.size() > 0) create(image);
