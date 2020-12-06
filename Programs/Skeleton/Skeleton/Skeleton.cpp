@@ -12,9 +12,9 @@ Quad fsquad;
 vec3 background = vec3(.2f, .2f, .2f);
 float resolution;
 float isolevel = 0.5;
-vec3 rotate = vec3(0.5, 0.5, 2);
+vec3 eyeOriginal = vec3(0.5, 0.5, 6);
 float distance = 1;
-bool alphaOn = false;
+bool alphaOn = true;
 mat4 m4 = mat4(
 	1.f, 0.f, 0.f, 0.f,
 	0.f, 1.f, 0.f, 0.f,
@@ -55,8 +55,8 @@ Camera camera;
 Light light;
 
 void initScene() {
-	camera.wLookat = vec3(0.5, 0.5, 0.5);
-	camera.wEye = rotate;
+	camera.wLookat = vec3(0.5, 0.5, 0);
+	camera.wEye = eyeOriginal;
 	camera.wVup = vec3(0, 1, 0);
 	light.wLightPos = vec4(10, 10, 0, -8);
 	light.Le = vec3(0.9, 0.9, 0.9);
@@ -130,9 +130,11 @@ void my_display_code()
 			);
 		    
 			mat4 m4t = m4.transpose();
-			vec4 temp = (vec4(rotate - camera.wLookat, 1) * m4t) + camera.wLookat;
+			vec4 temp = (vec4(vec3(0.5,0.5,0) - vec3(0.5,0.5,0.5), 1) * m4t) + vec3(0.5, 0.5, 0.5); //rotate lookat point
+			camera.wLookat = temp.xyz();
+			temp = (vec4(eyeOriginal - vec3(0.5, 0.5, 0.5), 1) * m4t) + vec3(0.5, 0.5, 0.5); //rotate eye position
 			camera.wEye = temp.xyz();
-			temp = (vec4(vec3(0,1,0), 1) * m4t);
+			temp = (vec4(vec3(0,1,0), 1) * m4t); //rotate up direction
 			camera.wVup = normalize(temp.xyz());
 			camera.updateCamera();
 
@@ -143,8 +145,8 @@ void my_display_code()
 		else {
 			isCameraOpened = false;
 		}
-		if (ImGui::CollapsingHeader("Light")) {
-		}
+		//if (ImGui::CollapsingHeader("Light")) {
+		//}
 
 		ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
 		ImGui::End();
