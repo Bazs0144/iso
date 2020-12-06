@@ -11,7 +11,7 @@ uniform float isolevel, R;
 uniform vec3 eye, lat, up;
 uniform Light light;
 uniform vec3 kd, background;
-uniform bool alphaOn;
+uniform bool alphaOn, denserTransparent;
 
 in vec2 uv;
 out vec4 sum;
@@ -37,7 +37,7 @@ void main() {
 			vec3 q = eye + dir * t;
 			float density = texture(vol,q).x; //in [0,1]
 			vec3 L = normalize(light.wLightPos.xyz - q*light.wLightPos.w); //wLightPos in hom.coord., also accurate in case of directional lightsource
-			if(density > isolevel){			
+			if((density > isolevel && !denserTransparent) || (density < isolevel && denserTransparent)){			
 				float alpha = clamp(alphaExp * (density - alphaCenter) + 0.5f, 0.0f, 1.0f);
 				vec3 N = vec3(float(texture(vol, q+dx) - texture(vol, q-dx)),
 							float(texture(vol, q+dy) - texture(vol, q-dy)),

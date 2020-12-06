@@ -14,7 +14,7 @@ float resolution;
 float isolevel = 0.5;
 vec3 eyeOriginal = vec3(0.5, 0.5, 6);
 float distance = 1;
-bool alphaOn = true;
+bool alphaOn = true, denserTransparent = false;
 mat4 m4 = mat4(
 	1.f, 0.f, 0.f, 0.f,
 	0.f, 1.f, 0.f, 0.f,
@@ -77,6 +77,7 @@ void setUniforms() {
 	gpuProgram.setUniform(light.wLightPos, "light.wLightPos");
 	//gpuProgram.setUniform(distance, "dist");
 	gpuProgram.setUniform(alphaOn, "alphaOn");
+	gpuProgram.setUniform(denserTransparent, "denserTransparent");
 }
 
 // Our state
@@ -114,6 +115,7 @@ void my_display_code()
 
 			ImGui::Checkbox("Exact number", &exact);
 			ImGui::Checkbox("Alpha on", &alphaOn);
+			ImGui::Checkbox("Brain inspection", &denserTransparent);
 		}
 		if (ImGui::CollapsingHeader("Background Color")) {
 			ImVec4 c = ImVec4(background.x, background.y, background.z, 1.00f);
