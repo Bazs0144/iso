@@ -108,6 +108,9 @@ struct vec4 {
 		std::cout << std::fixed << std::setprecision(2); 
 		std::cout << "\t(" << x << '\t' << y << '\t' << z << '\t' << w << ")\n"; 
 	}
+	vec3 xyz() {
+		return vec3(x, y, z);
+	}
 };
 
 inline float dot(const vec4& v1, const vec4& v2) {
@@ -117,6 +120,7 @@ inline float dot(const vec4& v1, const vec4& v2) {
 inline vec4 operator*(float a, const vec4& v) {
 	return vec4(v.x * a, v.y * a, v.z * a, v.w * a);
 }
+
 
 //---------------------------
 struct mat4 { // row-major matrix 4x4
@@ -142,6 +146,15 @@ public:
 	operator float* () const { return (float*)this; }
 	void print() {
 		std::cout << "mat4: \n"; rows[0].print(); rows[1].print(); rows[2].print(); rows[3].print();
+	}
+
+	mat4 transpose() {
+		mat4 t;
+		for (int i = 0; i < 4; ++i)
+			for (int j = 0; j < 4; ++j) {
+				t[j][i] = rows[i][j];
+			}
+		return t;
 	}
 };
 

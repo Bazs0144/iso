@@ -55,8 +55,8 @@ Camera camera;
 Light light;
 
 void initScene() {
-	camera.wEye = rotate;
 	camera.wLookat = vec3(0.5, 0.5, 0.5);
+	camera.wEye = rotate;
 	camera.wVup = vec3(0, 1, 0);
 	light.wLightPos = vec4(10, 10, 0, -8);
 	light.Le = vec3(0.9, 0.9, 0.9);
@@ -129,13 +129,12 @@ void my_display_code()
 				cameraView[12], cameraView[13], cameraView[14], cameraView[15]
 			);
 		    
-			m4.print();
-			vec4 temp = (vec4(rotate - camera.wLookat, 1) * m4) + camera.wLookat;
-			camera.wEye = vec3(temp.x, temp.y, temp.z);
-			//temp = (vec4(vec3(0,1,0), 1) * m4);
-			//camera.wVup = normalize(vec3(temp.x, temp.y, temp.z));
-			//camera.updateCamera();
-
+			mat4 m4t = m4.transpose();
+			vec4 temp = (vec4(rotate - camera.wLookat, 1) * m4t) + camera.wLookat;
+			camera.wEye = temp.xyz();
+			temp = (vec4(vec3(0,1,0), 1) * m4t);
+			camera.wVup = normalize(temp.xyz());
+			camera.updateCamera();
 
 			//ImGui::InputFloat("dist", &dist);
 			//ImGui::SliderFloat("distance", &distance, .1f, 10);
