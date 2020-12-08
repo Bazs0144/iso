@@ -55,7 +55,7 @@ Camera camera;
 Light light;
 
 void initScene() {
-	camera.wLookat = vec3(0.5, 0.5, 0);
+	camera.wLookat = vec3(0.5, 0.5, 0.5);
 	camera.wEye = eyeOriginal;
 	camera.wVup = vec3(0, 1, 0);
 	light.wLightPos = vec4(10, 10, 0, -8);
@@ -132,9 +132,9 @@ void my_display_code()
 			);
 		    
 			mat4 m4t = m4.transpose();
-			vec4 temp = (vec4(vec3(0.5,0.5,0) - vec3(0.5,0.5,0.5), 1) * m4t) + vec3(0.5, 0.5, 0.5); //rotate lookat point
-			camera.wLookat = temp.xyz();
-			temp = (vec4(eyeOriginal - vec3(0.5, 0.5, 0.5), 1) * m4t) + vec3(0.5, 0.5, 0.5); //rotate eye position
+			//vec4 temp = (vec4(vec3(0.5,0.5,0) - vec3(0.5,0.5,0.5), 1) * m4t) + vec3(0.5, 0.5, 0.5); //rotate lookat point
+			//camera.wLookat = temp.xyz();
+			vec4 temp = (vec4(eyeOriginal - vec3(0.5, 0.5, 0.5), 1) * m4t) + vec3(0.5, 0.5, 0.5); //rotate eye position
 			camera.wEye = temp.xyz();
 			temp = (vec4(vec3(0,1,0), 1) * m4t); //rotate up direction
 			camera.wVup = normalize(temp.xyz());

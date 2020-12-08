@@ -18,7 +18,7 @@ out vec4 sum;
 
 void main() { 
 	float alphaExp = 2, alphaCenter = 0.5; //in [0,1] 
-	float dt = 1.0f/R;
+	float dt = 1.0f/(R*3);
 	vec3 ri = normalize(cross(up, lat - eye));
 	vec3 p = lat + ri * (2*uv.x - 1.f) + up * (2*uv.y - 1.f);
 	vec3 dir = normalize(p - eye);
